@@ -16,6 +16,7 @@ Gem::Specification.new do |spec|
 
   spec.files         = Dir["lib/**/*"] + %w(README.md LICENSE)
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
+  spec.bindir = 'bin'
   spec.require_paths = ['lib']
 
   # Don't add a dependency to fastlane or fastlane_re
