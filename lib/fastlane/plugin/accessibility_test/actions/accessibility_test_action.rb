@@ -1,3 +1,4 @@
+# coding: utf-8
 module Fastlane
   module Actions
     class AccessibilityTestAction < Action
@@ -19,11 +20,18 @@ module Fastlane
             extra_options: "--results-bucket #{firebase_test_lab_results_bucket} --results-dir #{firebase_test_lab_results_dir} --no-record-video"
         )
 
-        UI.message "Fetch screenshots and accessibility meta data from Firebase Test Lab results bucket"
+        # UI.message "Fetch screenshots and accessibility meta data from Firebase Test Lab results bucket"
         device_names = devices.map(&method(:device_name))
         device_names.each do |device_name|
           `mkdir -p #{download_dir}/#{device_name}`
           Action.sh "gsutil -m rsync -d -r gs://#{firebase_test_lab_results_bucket}/#{firebase_test_lab_results_dir}/#{device_name}/artifacts #{download_dir}/#{device_name}"
+        end
+
+        UI.message "Execute accessibility check"
+        executable = File.expand_path('../../../../../bin/accessibility-analyzer.jar', __FILE__)
+        device_names.each do |device_name|
+          Action.sh "java -jar #{executable} --target=#{download_dir}/#{device_name}"
+        end
       end
 
       def self.device_name(device)
@@ -67,6 +75,11 @@ module Fastlane
                                            set_default_property(device, :orientation, "portrait")
                                          end
                                        end),
+          FastlaneCore::ConfigItem.new(key: :app_apk,
+                                       env_name: "APP_APK",
+                                       description: "The path for your android app apk",
+                                       type: String,
+                                       optional: false),
           FastlaneCore::ConfigItem.new(key: :timeout,
                                        env_name: "TIMEOUT",
                                        description: "The max time this test execution can run before it is cancelled. Default: 5m (this value must be greater than or equal to 1m)",
@@ -88,6 +101,16 @@ module Fastlane
 
       def self.is_supported?(platform)
         platform == :android
+      end
+
+      def self.check_has_property(hash_obj, property)
+        UI.user_error!("Each device must have #{property} property") unless hash_obj.key?(property)
+      end
+
+      def self.set_default_property(hash_obj, property, default)
+        unless hash_obj.key?(property)
+          hash_obj[property] = default
+        end
       end
     end
   end
