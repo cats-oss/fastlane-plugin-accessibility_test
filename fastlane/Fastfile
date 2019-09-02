@@ -1,3 +1,18 @@
 lane :test do
-  accessibility_test
+  accessibility_test(
+    project_id: "******",
+    gcloud_service_key_file: "fastlane/client-secret.json",
+    devices:
+      [
+        {
+          model: "shamu",
+          version: "22",
+          locale: "ja_JP",
+          orientation: "portrait"
+        }
+      ],
+    app_apk: "fastlane/app.apk",
+    firebase_test_lab_results_bucket: "firebase-test-lab-result-bucket",
+    download_dir: ".accessibility"
+  )
 end
