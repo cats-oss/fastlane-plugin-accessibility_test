@@ -4,10 +4,11 @@ module Fastlane
     class AccessibilityTestAction < Action
       def self.run(params)
         download_dir = params[:download_dir]
-
         firebase_test_lab_results_bucket = params[:firebase_test_lab_results_bucket] == nil ? "#{params[:project_id]}_test_results" : params[:firebase_test_lab_results_bucket]
         firebase_test_lab_results_dir = "firebase_test_result_#{DateTime.now.strftime('%Y-%m-%d-%H:%M:%S')}"
         devices = params[:devices]
+        device_names = devices.map(&method(:device_name))
+
         Fastlane::Actions::FirebaseTestLabAndroidAction.run(
             project_id: params[:project_id],
             gcloud_service_key_file: params[:gcloud_service_key_file],
@@ -20,8 +21,7 @@ module Fastlane
             extra_options: "--results-bucket #{firebase_test_lab_results_bucket} --results-dir #{firebase_test_lab_results_dir} --no-record-video"
         )
 
-        # UI.message "Fetch screenshots and accessibility meta data from Firebase Test Lab results bucket"
-        device_names = devices.map(&method(:device_name))
+        UI.message "Fetch screenshots and accessibility meta data from Firebase Test Lab results bucket"
         device_names.each do |device_name|
           `mkdir -p #{download_dir}/#{device_name}`
           Action.sh "gsutil -m rsync -d -r gs://#{firebase_test_lab_results_bucket}/#{firebase_test_lab_results_dir}/#{device_name}/artifacts #{download_dir}/#{device_name}"
