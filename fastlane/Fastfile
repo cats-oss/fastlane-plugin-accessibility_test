@@ -1,6 +1,6 @@
 lane :test do
   accessibility_test(
-    project_id: "******",
+    project_id: "*******",
     gcloud_service_key_file: "fastlane/client-secret.json",
     devices:
       [
@@ -12,7 +12,12 @@ lane :test do
         }
       ],
     app_apk: "fastlane/app.apk",
-    firebase_test_lab_results_bucket: "firebase-test-lab-result-bucket",
-    download_dir: ".accessibility"
+    timeout: "10m",
+    firebase_test_lab_results_bucket: "*******",
+    download_dir: ".accessibility",
+    github_owner: "*******",
+    github_repository: "*******",
+    github_pr_number: "*******",
+    github_api_token: "*******"
   )
 end
