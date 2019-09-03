@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.email         = 'itometeam@gmail.com'
 
   spec.summary       = 'Accessibility test with Firebase Test Lab for Android.'
-  # spec.homepage      = "https://github.com/<GITHUB_USERNAME>/fastlane-plugin-accessibility_test"
+  spec.homepage      = "https://github.com/cats-oss/fastlane-plugin-accessibility_test"
   spec.license       = "MIT"
 
   spec.files         = Dir["lib/**/*"] + %w(README.md LICENSE)
