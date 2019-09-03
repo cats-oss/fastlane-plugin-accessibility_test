@@ -2,8 +2,8 @@ require 'fastlane_core/ui/ui'
 
 module Fastlane
   module Helper
-    def self.firebase_object_url(bucket, dir, path)
-      "https://storage.cloud.google.com/#{bucket}/#{CGI.escape(dir)}/#{path}?authuser=1"
+    def self.firebase_object_url(bucket, path)
+      "https://firebasestorage.googleapis.com/v0/b/#{bucket}/o/#{CGI.escape(path)}?alt=media"
     end
   end
 end

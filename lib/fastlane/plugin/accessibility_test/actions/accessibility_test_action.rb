@@ -56,7 +56,7 @@ module Fastlane
                 {
                   title: proto.title,
                   message: proto.message,
-                  image: Helper.firebase_object_url(firebase_test_lab_results_bucket, firebase_test_lab_results_dir, "#{device_name}/artifacts/#{File.basename(filePath, ".meta")}.png")
+                  image: Helper.firebase_object_url(firebase_test_lab_results_bucket, "#{firebase_test_lab_results_dir}/#{device_name}/artifacts/#{File.basename(filePath, ".meta")}.png")
                 }
               )
             end
@@ -84,7 +84,7 @@ module Fastlane
 #{cells}
         EOS
 
-        print(message)
+        UI.message message
         GitHubNotifier.put_comment(
             params[:github_owner],
             params[:github_repository],
@@ -151,11 +151,6 @@ module Fastlane
                                        description: "Name of Firebase Test Lab results bucket",
                                        type: String,
                                        optional: true),
-          FastlaneCore::ConfigItem.new(key: :accessibility_test_bucket,
-                                       env_name: "SNAPSHOT_BUCKET",
-                                       description: "GCS Bucket that stores expected images",
-                                       type: String,
-                                       optional: false),
           FastlaneCore::ConfigItem.new(key: :download_dir,
                                        env_name: "DOWNLOAD_DIR",
                                        description: "Target directory to download screenshots from firebase",
