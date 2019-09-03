@@ -1,4 +1,8 @@
 # coding: utf-8
+require_relative '../helper/accessibility_evaluation_pb'
+require_relative '../helper/github_notifier'
+require_relative '../helper/helper'
+
 module Fastlane
   module Actions
     class AccessibilityTestAction < Action
@@ -8,6 +12,7 @@ module Fastlane
         firebase_test_lab_results_dir = "firebase_test_result_#{DateTime.now.strftime('%Y-%m-%d-%H:%M:%S')}"
         devices = params[:devices]
         device_names = devices.map(&method(:device_name))
+        results = []
 
         Fastlane::Actions::FirebaseTestLabAndroidAction.run(
             project_id: params[:project_id],
@@ -32,6 +37,61 @@ module Fastlane
         device_names.each do |device_name|
           Action.sh "java -jar #{executable} --target=#{download_dir}/#{device_name}"
         end
+
+        UI.message "Push screenshots and accessibility meta data from Firebase Test Lab results bucket"
+        device_names.each do |device_name|
+          `mkdir -p #{download_dir}/#{device_name}`
+          Action.sh "gsutil -m rsync -d -r #{download_dir}/#{device_name} gs://#{firebase_test_lab_results_bucket}/#{firebase_test_lab_results_dir}/#{device_name}/artifacts"
+        end
+
+        UI.message "Extract test result"
+        device_names.each do |device_name|
+          entries = Dir::entries("#{download_dir}/#{device_name}")
+          entries = entries.select { |entry| entry =~ /accessibility[0-9]+_check_result[0-9]+.meta/ }
+          for entry in entries do
+            filePath = "#{download_dir}/#{device_name}/#{entry}"
+            File.open(filePath, "r") do |file|
+              proto = Proto::AccessibilityHierarchyCheckResultProto.decode(file.read())
+              results.push(
+                {
+                  title: proto.title,
+                  message: proto.message,
+                  image: Helper.firebase_object_url(firebase_test_lab_results_bucket, firebase_test_lab_results_dir, "#{device_name}/artifacts/#{File.basename(filePath, ".meta")}.png")
+                }
+              )
+            end
+          end
+        end
+
+        UI.message "Notify to GitHub"
+        notify_github(params, results)
+      end
+
+      def self.notify_github(params, results)
+        return if params[:github_pr_number] == nil
+
+        summary = results.empty? ? "### :white_check_mark: All test passed" : "### :x: #{results.length} error found."
+        cells = results.map {|result|
+          "|<img src=\"#{result[:image]}\">|**#{result[:title]}**<br/>#{result[:message]}|\n"
+        }.inject(&:+)
+
+        message = <<-EOS
+## Accessibility Test Result
+#{summary}
+
+|Screenshot|message|
+|-|-|
+#{cells}
+        EOS
+
+        print(message)
+        GitHubNotifier.put_comment(
+            params[:github_owner],
+            params[:github_repository],
+            params[:github_pr_number],
+            message,
+            params[:github_api_token]
+        )
       end
 
       def self.device_name(device)
@@ -91,11 +151,36 @@ module Fastlane
                                        description: "Name of Firebase Test Lab results bucket",
                                        type: String,
                                        optional: true),
+          FastlaneCore::ConfigItem.new(key: :accessibility_test_bucket,
+                                       env_name: "SNAPSHOT_BUCKET",
+                                       description: "GCS Bucket that stores expected images",
+                                       type: String,
+                                       optional: false),
           FastlaneCore::ConfigItem.new(key: :download_dir,
                                        env_name: "DOWNLOAD_DIR",
                                        description: "Target directory to download screenshots from firebase",
                                        type: String,
-                                       optional: false)
+                                       optional: false),
+          FastlaneCore::ConfigItem.new(key: :github_owner,
+                                       env_name: "GITHUB_OWNER",
+                                       description: "Owner name",
+                                       type: String,
+                                       optional: false),
+          FastlaneCore::ConfigItem.new(key: :github_repository,
+                                       env_name: "GITHUB_REPOSITORY",
+                                       description: "Repository name",
+                                       type: String,
+                                       optional: false),
+          FastlaneCore::ConfigItem.new(key: :github_pr_number,
+                                       env_name: "GITHUB_PR_NUMBER",
+                                       description: "Pull request number",
+                                       type: String,
+                                       optional: true),
+          FastlaneCore::ConfigItem.new(key: :github_api_token,
+                                       env_name: "GITHUB_API_TOKEN",
+                                       description: "GitHub API Token",
+                                       type: String,
+                                       optional: false),
         ]
       end
 
