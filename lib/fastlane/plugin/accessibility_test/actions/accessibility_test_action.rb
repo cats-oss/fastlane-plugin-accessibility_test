@@ -56,7 +56,8 @@ module Fastlane
                 {
                   title: proto.title,
                   message: proto.message,
-                  image: Helper.firebase_object_url(firebase_test_lab_results_bucket, "#{firebase_test_lab_results_dir}/#{device_name}/artifacts/#{File.basename(filePath, ".meta")}.png")
+                  image: Helper.firebase_object_url(firebase_test_lab_results_bucket, "#{firebase_test_lab_results_dir}/#{device_name}/artifacts/#{File.basename(filePath, ".meta")}.png"),
+                  type: proto.result_type
                 }
               )
             end
@@ -69,9 +70,16 @@ module Fastlane
 
       def self.notify_github(params, results)
         return if params[:github_pr_number] == nil
+        errors = results.select { |result| result[:type] == :ERROR }
+        warnings = results.select { |result| result[:type] == :WARNING }
 
-        summary = results.empty? ? "### :white_check_mark: All test passed" : "### :x: #{results.length} error found."
-        cells = results.map {|result|
+        summary = errors.empty? ?
+                    "### :white_check_mark: All test passed (with #{warnings.length} warnings)" :
+                    "### :x: #{errors.length} error found. (with #{errors.length} warnings)"
+        error_cells = errors.map {|result|
+          "|<img src=\"#{result[:image]}\">|**#{result[:title]}**<br/>#{result[:message]}|\n"
+        }.inject(&:+)
+        warning_cells = warnings.map {|result|
           "|<img src=\"#{result[:image]}\">|**#{result[:title]}**<br/>#{result[:message]}|\n"
         }.inject(&:+)
 
@@ -81,7 +89,16 @@ module Fastlane
 
 |Screenshot|message|
 |-|-|
-#{cells}
+#{error_cells}
+
+<details>
+<summary>#{warnings.length} warnings. Click here to see details.</summary>
+
+|Screenshot|message|
+|-|-|
+#{warning_cells}
+
+</details>
         EOS
 
         UI.message message
