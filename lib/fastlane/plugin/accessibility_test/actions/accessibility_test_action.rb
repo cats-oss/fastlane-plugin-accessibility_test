@@ -34,8 +34,9 @@ module Fastlane
 
         UI.message "Execute accessibility check"
         executable = File.expand_path('../../../../../bin/accessibility-analyzer.jar', __FILE__)
+        test_params = params[:test_params] == nil ? "" : params[:test_params]
         device_names.each do |device_name|
-          Action.sh "java -jar #{executable} --target=#{download_dir}/#{device_name}"
+          Action.sh "java -jar #{executable} --target=#{download_dir}/#{device_name} #{test_params}"
         end
 
         UI.message "Push screenshots and accessibility meta data from Firebase Test Lab results bucket"
@@ -157,6 +158,11 @@ module Fastlane
                                        description: "The path for your android app apk",
                                        type: String,
                                        optional: false),
+          FastlaneCore::ConfigItem.new(key: :test_params,
+                                       env_name: "TEST_PARAMS",
+                                       description: "Parameters for running accessibility check",
+                                       type: String,
+                                       optional: true),
           FastlaneCore::ConfigItem.new(key: :timeout,
                                        env_name: "TIMEOUT",
                                        description: "The max time this test execution can run before it is cancelled. Default: 5m (this value must be greater than or equal to 1m)",
