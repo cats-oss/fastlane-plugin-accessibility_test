@@ -37,6 +37,7 @@ module Fastlane
         test_params = params[:test_params] == nil ? "" : params[:test_params]
         device_names.each do |device_name|
           Action.sh "java -jar #{executable} --target=#{download_dir}/#{device_name} #{test_params}"
+          Action.sh "mogrify -scale 320x #{download_dir}/#{device_name}/accessibility[0-9]*_check_result[0-9]*.png"
         end
 
         UI.message "Push screenshots and accessibility meta data from Firebase Test Lab results bucket"
