@@ -23,7 +23,7 @@ module Fastlane
             console_log_file_name: "#{download_dir}/firebase_os_test_console.log",
             timeout: params[:timeout],
             notify_to_slack: false,
-            extra_options: "--results-bucket #{firebase_test_lab_results_bucket} --results-dir #{firebase_test_lab_results_dir} --no-record-video"
+            extra_options: "--results-bucket #{firebase_test_lab_results_bucket} --results-dir #{firebase_test_lab_results_dir} --no-record-video #{params[:extra_test_lab_options]}"
         )
 
         UI.message "Fetch screenshots and accessibility meta data from Firebase Test Lab results bucket"
@@ -174,6 +174,12 @@ module Fastlane
                                        description: "Name of Firebase Test Lab results bucket",
                                        type: String,
                                        optional: true),
+          FastlaneCore::ConfigItem.new(key: :extra_test_lab_options,
+                                       env_name: "EXTRA_TEST_LAB_OPTIONS",
+                                       description: "Extra options that you need to pass to the gcloud command. Default: empty string",
+                                       is_string: true,
+                                       optional: true,
+                                       default_value: ""),
           FastlaneCore::ConfigItem.new(key: :download_dir,
                                        env_name: "DOWNLOAD_DIR",
                                        description: "Target directory to download screenshots from firebase",
