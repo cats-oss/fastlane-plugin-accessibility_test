@@ -79,10 +79,10 @@ module Fastlane
                     "### :white_check_mark: All test passed (with #{warnings.length} warnings)" :
                     "### :x: #{errors.length} error found. (with #{errors.length} warnings)"
         error_cells = errors.each_slice(2).map {|results|
-          "|<img src=\"#{results[0]&.to_h[:image]}\">|**#{results[0]&.to_h[:title]}**<br/>#{results[0]&.to_h[:message]}|<img src=\"#{results[1]&.to_h[:image]}\">|**#{results[1]&.to_h[:title]}**<br/>#{results[1]&.to_h[:message]}|\n"
+          "|<img src=\"#{results[0].to_h[:image]}\">|**#{results[0].to_h[:title]}**<br/>#{results[0].to_h[:message]}|<img src=\"#{results[1].to_h[:image]}\">|**#{results[1].to_h[:title]}**<br/>#{results[1].to_h[:message]}|\n"
         }.inject(&:+)
         warning_cells = warnings.each_slice(2).map {|results|
-          "|<img src=\"#{results[0]&.to_h[:image]}\">|**#{results[0]&.to_h[:title]}**<br/>#{results[0]&.to_h[:message]}|<img src=\"#{results[1]&.to_h[:image]}\">|**#{results[1]&.to_h[:title]}**<br/>#{results[1]&.to_h[:message]}|\n"
+          "|<img src=\"#{results[0].to_h[:image]}\">|**#{results[0].to_h[:title]}**<br/>#{results[0].to_h[:message]}|<img src=\"#{results[1].to_h[:image]}\">|**#{results[1].to_h[:title]}**<br/>#{results[1].to_h[:message]}|\n"
         }.inject(&:+)
 
         message = <<-EOS
