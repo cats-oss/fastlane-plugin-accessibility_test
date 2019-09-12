@@ -79,10 +79,10 @@ module Fastlane
                     "### :white_check_mark: All test passed (with #{warnings.length} warnings)" :
                     "### :x: #{errors.length} error found. (with #{errors.length} warnings)"
         error_cells = errors.map {|result|
-          "|<img src=\"#{result[:image]}\" height=\"320px\">|**#{result[:title]}**<br/>#{result[:message]}|\n"
+          "|<img src=\"#{result[:image]}\">|**#{result[:title]}**<br/>#{result[:message]}|\n"
         }.inject(&:+)
         warning_cells = warnings.map {|result|
-          "|<img src=\"#{result[:image]}\" height=\"320px\">|**#{result[:title]}**<br/>#{result[:message]}|\n"
+          "|<img src=\"#{result[:image]}\">|**#{result[:title]}**<br/>#{result[:message]}|\n"
         }.inject(&:+)
 
         message = <<-EOS
