@@ -104,6 +104,15 @@ module Fastlane
         EOS
 
         UI.message message
+
+        GitHubNotifier.fold_comments(
+          params[:github_owner],
+          params[:github_repository],
+          params[:github_pr_number],
+          "## Accessibility Test Result",
+          "Open past accessibility test result",
+          params[:github_api_token]
+        )
         GitHubNotifier.put_comment(
             params[:github_owner],
             params[:github_repository],
