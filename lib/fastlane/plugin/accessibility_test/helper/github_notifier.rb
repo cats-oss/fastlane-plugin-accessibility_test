@@ -10,7 +10,7 @@ module Fastlane
       JSON.parse(res.body)
           .select {|comment| comment["body"].start_with?(comment_prefix)}
           .each {|comment|
-            body = "<details><summary>#{summary}</summary>\n#{comment["body"]}\n\n</details>\n"
+            body = "<details><summary>#{summary}</summary>\n\n#{comment["body"]}\n\n</details>\n"
             patch_comment(github_owner, github_repository, comment["id"], body, github_api_token)
           }
     end
