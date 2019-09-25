@@ -88,10 +88,19 @@ module Fastlane
         message = <<-EOS
 ## Accessibility Test Result
 #{summary}
+        EOS
+
+        if !errors.empty? do
+          message << <<-EOS
 
 |Screenshot|message|Screenshot|message|
 |-|-|-|-|
 #{error_cells}
+        EOS
+        end
+
+        if params[:enable_warning] && !warnings.empty? do
+          message << <<-EOS
 
 <details>
 <summary>#{warnings.length} warnings. Click here to see details.</summary>
@@ -102,6 +111,7 @@ module Fastlane
 
 </details>
         EOS
+        end
 
         UI.message message
 
@@ -215,6 +225,12 @@ module Fastlane
                                        description: "GitHub API Token",
                                        type: String,
                                        optional: false),
+          FastlaneCore::ConfigItem.new(key: :enable_warning,
+                                       env_name: "ENABLE_WARNING",
+                                       description: "Should show warning in output",
+                                       is_string: false,
+                                       default_value: true,
+                                       optional: true),
         ]
       end
 
