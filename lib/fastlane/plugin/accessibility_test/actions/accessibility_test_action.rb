@@ -85,13 +85,19 @@ module Fastlane
           "|<img src=\"#{results[0].to_h[:image]}\" loading=\"lazy\">|**#{results[0].to_h[:title]}**<br/>#{results[0].to_h[:message]}|<img src=\"#{results[1].to_h[:image]}\" loading=\"lazy\">|**#{results[1].to_h[:title]}**<br/>#{results[1].to_h[:message]}|\n"
         }.inject(&:+)
 
-        message = <<-EOS
+        title_message = <<-EOS
 ## Accessibility Test Result
 #{summary}
+        EOS
+
+        errors_message = <<-EOS
 
 |Screenshot|message|Screenshot|message|
 |-|-|-|-|
 #{error_cells}
+        EOS
+
+        warnings_message = <<-EOS
 
 <details>
 <summary>#{warnings.length} warnings. Click here to see details.</summary>
@@ -103,6 +109,7 @@ module Fastlane
 </details>
         EOS
 
+        message = title_message + !errors.empty? ? errors_message : "" + (params[:enable_warning] && !warnings.empty?) ? warnings_message : ""
         UI.message message
 
         GitHubNotifier.fold_comments(
@@ -215,6 +222,12 @@ module Fastlane
                                        description: "GitHub API Token",
                                        type: String,
                                        optional: false),
+          FastlaneCore::ConfigItem.new(key: :enable_warning,
+                                       env_name: "ENABLE_WARNING",
+                                       description: "Should show warning in output",
+                                       is_string: false,
+                                       default_value: true,
+                                       optional: true),
         ]
       end
 
