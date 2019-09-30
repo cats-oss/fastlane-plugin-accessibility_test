@@ -109,7 +109,7 @@ module Fastlane
 </details>
         EOS
 
-        message = title_message + !errors.empty? ? errors_message : "" + (params[:enable_warning] && !warnings.empty?) ? warnings_message : ""
+        message = title_message + (!errors.empty? ? errors_message : "") + ((params[:enable_warning] && !warnings.empty?) ? warnings_message : "")
         UI.message message
 
         GitHubNotifier.fold_comments(
