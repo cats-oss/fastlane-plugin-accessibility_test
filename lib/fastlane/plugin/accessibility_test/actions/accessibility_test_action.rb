@@ -8,7 +8,7 @@ module Fastlane
     class AccessibilityTestAction < Action
       def self.run(params)
         download_dir = params[:download_dir]
-        firebase_test_lab_results_bucket = params[:firebase_test_lab_results_bucket] == nil ? "#{params[:project_id]}_test_results" : params[:firebase_test_lab_results_bucket]
+        firebase_test_lab_results_bucket = params[:firebase_test_lab_results_bucket] ? "#{params[:project_id]}_test_results" : params[:firebase_test_lab_results_bucket]
         firebase_test_lab_results_dir = "firebase_test_result_#{DateTime.now.strftime('%Y-%m-%d-%H:%M:%S')}"
         devices = params[:devices]
         device_names = devices.map(&method(:device_name))
@@ -22,8 +22,9 @@ module Fastlane
             app_apk: params[:app_apk],
             console_log_file_name: "#{download_dir}/firebase_os_test_console.log",
             timeout: params[:timeout],
-            notify_to_slack: false,
-            extra_options: "--results-bucket #{firebase_test_lab_results_bucket} --results-dir #{firebase_test_lab_results_dir} --no-record-video #{params[:extra_test_lab_options]}"
+            firebase_test_lab_results_bucket: firebase_test_lab_results_bucket,
+            firebase_test_lab_results_dir: firebase_test_lab_results_dir,
+            extra_options: "--no-record-video #{params[:extra_test_lab_options]}"
         )
 
         UI.message "Fetch screenshots and accessibility meta data from Firebase Test Lab results bucket"
@@ -85,28 +86,28 @@ module Fastlane
           "|<img src=\"#{results[0].to_h[:image]}\" loading=\"lazy\">|**#{results[0].to_h[:title]}**<br/>#{results[0].to_h[:message]}|<img src=\"#{results[1].to_h[:image]}\" loading=\"lazy\">|**#{results[1].to_h[:title]}**<br/>#{results[1].to_h[:message]}|\n"
         }.inject(&:+)
 
-        title_message = <<-EOS
-## Accessibility Test Result
-#{summary}
+        title_message = <<~EOS
+          ## Accessibility Test Result
+          #{summary}
         EOS
 
-        errors_message = <<-EOS
+        errors_message = <<~EOS
 
-|Screenshot|message|Screenshot|message|
-|-|-|-|-|
-#{error_cells}
+          |Screenshot|message|Screenshot|message|
+          |-|-|-|-|
+          #{error_cells}
         EOS
 
-        warnings_message = <<-EOS
+        warnings_message = <<~EOS
 
-<details>
-<summary>#{warnings.length} warnings. Click here to see details.</summary>
+          <details>
+          <summary>#{warnings.length} warnings. Click here to see details.</summary>
 
-|Screenshot|message|Screenshot|message|
-|-|-|-|-|
-#{warning_cells}
+          |Screenshot|message|Screenshot|message|
+          |-|-|-|-|
+          #{warning_cells}
 
-</details>
+          </details>
         EOS
 
         message = title_message + (!errors.empty? ? errors_message : "") + ((params[:enable_warning] && !warnings.empty?) ? warnings_message : "")
