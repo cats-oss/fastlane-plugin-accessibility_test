@@ -8,10 +8,8 @@ module Fastlane
     class AccessibilityTestAction < Action
       def self.run(params)
         download_dir = params[:download_dir]
-
         results_bucket = params[:firebase_test_lab_results_bucket] || "#{params[:project_id]}_test_results"
-        results_dir = params[:firebase_test_lab_results_dir] || "firebase_test_result_#{DateTime.now.strftime('%Y-%m-%d-%H:%M:%S')}"
-
+        results_dir =  "firebase_test_result_#{DateTime.now.strftime('%Y-%m-%d-%H:%M:%S')}"
         devices = params[:devices]
         device_names = devices.map(&method(:device_name))
         results = []
