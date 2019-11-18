@@ -14,3 +14,7 @@ fastlane/client-secret.json
 
 *.apk
 .accessibility
+
+# IntelliJ
+*.iml
+.idea/
