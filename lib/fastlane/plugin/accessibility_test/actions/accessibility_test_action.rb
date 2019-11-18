@@ -8,8 +8,10 @@ module Fastlane
     class AccessibilityTestAction < Action
       def self.run(params)
         download_dir = params[:download_dir]
-        firebase_test_lab_results_bucket = params[:firebase_test_lab_results_bucket] ? "#{params[:project_id]}_test_results" : params[:firebase_test_lab_results_bucket]
-        firebase_test_lab_results_dir = "firebase_test_result_#{DateTime.now.strftime('%Y-%m-%d-%H:%M:%S')}"
+
+        results_bucket = params[:firebase_test_lab_results_bucket] || "#{params[:project_id]}_test_results"
+        results_dir = params[:firebase_test_lab_results_dir] || "firebase_test_result_#{DateTime.now.strftime('%Y-%m-%d-%H:%M:%S')}"
+
         devices = params[:devices]
         device_names = devices.map(&method(:device_name))
         results = []
@@ -22,15 +24,15 @@ module Fastlane
             app_apk: params[:app_apk],
             console_log_file_name: "#{download_dir}/firebase_os_test_console.log",
             timeout: params[:timeout],
-            firebase_test_lab_results_bucket: firebase_test_lab_results_bucket,
-            firebase_test_lab_results_dir: firebase_test_lab_results_dir,
+            firebase_test_lab_results_bucket: results_bucket,
+            firebase_test_lab_results_dir: results_dir,
             extra_options: "--no-record-video #{params[:extra_test_lab_options]}"
         )
 
         UI.message "Fetch screenshots and accessibility meta data from Firebase Test Lab results bucket"
         device_names.each do |device_name|
           `mkdir -p #{download_dir}/#{device_name}`
-          Action.sh "gsutil -m rsync -d -r gs://#{firebase_test_lab_results_bucket}/#{firebase_test_lab_results_dir}/#{device_name}/artifacts #{download_dir}/#{device_name}"
+          Action.sh "gsutil -m rsync -d -r gs://#{results_bucket}/#{results_dir}/#{device_name}/artifacts #{download_dir}/#{device_name}"
         end
 
         UI.message "Execute accessibility check"
@@ -44,7 +46,7 @@ module Fastlane
         UI.message "Push screenshots and accessibility meta data from Firebase Test Lab results bucket"
         device_names.each do |device_name|
           `mkdir -p #{download_dir}/#{device_name}`
-          Action.sh "gsutil -m rsync -d -r #{download_dir}/#{device_name} gs://#{firebase_test_lab_results_bucket}/#{firebase_test_lab_results_dir}/#{device_name}/artifacts"
+          Action.sh "gsutil -m rsync -d -r #{download_dir}/#{device_name} gs://#{results_bucket}/#{results_dir}/#{device_name}/artifacts"
         end
 
         UI.message "Extract test result"
@@ -59,7 +61,7 @@ module Fastlane
                 {
                   title: proto.title,
                   message: proto.message,
-                  image: Helper.firebase_object_url(firebase_test_lab_results_bucket, "#{firebase_test_lab_results_dir}/#{device_name}/artifacts/#{File.basename(filePath, ".meta")}.png"),
+                  image: Helper.firebase_object_url(results_bucket, "#{results_dir}/#{device_name}/artifacts/#{File.basename(filePath, ".meta")}.png"),
                   type: proto.result_type
                 }
               )
